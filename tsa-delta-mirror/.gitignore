@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+sbom.*.json
+.terraform/
+*.tfstate
+*.tfstate.backup
+terraform/environments/*.tfvars
+!terraform/environments/*.tfvars.example
+docker/sharing-server/profile.json

@@ -1,0 +1,25 @@
+# Reference-server config for the docker-compose integration stack (NOT for production).
+version: 1
+shares:
+  - name: "gov"
+    schemas:
+      - name: "ops"
+        tables:
+          - name: "people_cdf"
+            location: "s3a://provider/people_cdf"
+            id: "00000000-0000-0000-0000-000000000001"
+            cdfEnabled: true
+            historyShared: true
+          - name: "people_plain"
+            location: "s3a://provider/people_plain"
+            id: "00000000-0000-0000-0000-000000000002"
+host: "0.0.0.0"
+port: 8080
+endpoint: "/delta-sharing"
+preSignedUrlTimeoutSeconds: 3600
+deltaTableCacheSize: 10
+stalenessAcceptable: false
+evaluatePredicateHints: false
+evaluateJsonPredicateHints: true
+authorization:
+  bearerToken: "compose-test-token"

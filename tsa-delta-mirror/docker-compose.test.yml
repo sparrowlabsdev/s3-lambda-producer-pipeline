@@ -1,0 +1,49 @@
+# Integration stack: open-source Delta Sharing reference server + MinIO "lake".
+#   docker compose -f docker-compose.test.yml up -d --wait
+#   python scripts/seed_share.py            # writes two Delta tables (one with CDF) into MinIO
+#   pytest -m compose tests/integration     # runs the mirror against the stack
+# The reference server reads the shared tables from MinIO through its S3A client
+# (docker/sharing-server/conf/core-site.xml); the mirror writes to the same MinIO as "S3".
+services:
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports: ["9000:9000", "9001:9001"]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minioadmin minioadmin &&
+      mc mb -p local/provider && mc mb -p local/lake && exit 0"
+
+  sharing-server:
+    image: deltaio/delta-sharing-server:0.7.8
+    depends_on:
+      minio-init: { condition: service_completed_successfully }
+    command: ["--config", "/config/delta-sharing-server.yaml"]
+    environment:
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_REGION: us-east-1
+      # Hadoop S3A settings for MinIO (endpoint + path style) live in conf/core-site.xml
+      JAVA_OPTS: "-Xmx1g"
+    volumes:
+      - ./docker/sharing-server/delta-sharing-server.yaml:/config/delta-sharing-server.yaml:ro
+      - ./docker/sharing-server/conf/core-site.xml:/opt/docker/conf/core-site.xml:ro
+    ports: ["8080:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs -H 'Authorization: Bearer compose-test-token' http://localhost:8080/delta-sharing/shares || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30

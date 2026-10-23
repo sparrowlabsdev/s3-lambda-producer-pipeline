@@ -1,4 +1,15 @@
-# s3-lambda-producer-pipeline
+# Data lake reference architectures
+
+Two small, production-shaped reference architectures for an S3 data lake, each deployable with Terraform:
+
+| # | Architecture | Direction | Where |
+|---|---|---|---|
+| 1 | **S3 → Lambda → Glue producer pipeline** | produce: CSV lands in S3, Glue crawls and converts to parquet | this directory (below) |
+| 2 | **Delta Sharing → S3 Delta Lake mirror** | consume: tables shared over the open Delta Sharing protocol are mirrored as plain Delta tables on S3 (ECS Fargate, no Spark, Databricks-ready) | [`tsa-delta-mirror/`](tsa-delta-mirror/README.md) |
+
+---
+
+# 1. s3-lambda-producer-pipeline
 
 
 The Terraform template deploys a data producer using a series of Lambda functions, S3 buckets, EventBridge rules, and IAM resources required to run the application. 

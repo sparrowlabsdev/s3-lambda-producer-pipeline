@@ -1,0 +1,6 @@
+{
+  "shareCredentialsVersion": 1,
+  "endpoint": "http://localhost:8080/delta-sharing",
+  "bearerToken": "compose-test-token",
+  "expirationTime": "2030-01-01T00:00:00Z"
+}
