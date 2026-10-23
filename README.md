@@ -5,7 +5,7 @@ Two small, production-shaped reference architectures for an S3 data lake, each d
 | # | Architecture | Direction | Where |
 |---|---|---|---|
 | 1 | **S3 → Lambda → Glue producer pipeline** | produce: CSV lands in S3, Glue crawls and converts to parquet | this directory (below) |
-| 2 | **Delta Sharing → S3 Delta Lake mirror** | consume: tables shared over the open Delta Sharing protocol are mirrored as plain Delta tables on S3 (ECS Fargate, no Spark, Databricks-ready) | [`tsa-delta-mirror/`](tsa-delta-mirror/README.md) |
+| 2 | **Delta Sharing → S3 Delta Lake mirror** | consume: tables shared over the open Delta Sharing protocol are mirrored as plain Delta tables on S3 (ECS Fargate, no Spark, Databricks-ready) | [`delta-sharing-mirror/`](delta-sharing-mirror/README.md) |
 
 ---
 
