@@ -100,7 +100,7 @@ delta-sharing-mirror/
 ```bash
 cd delta-sharing-mirror
 uv venv --python 3.12 .venv && source .venv/bin/activate
-uv pip install -e ".[dev]"
+uv pip install -e ".[dev]" --override overrides.txt
 
 ruff format --check src tests scripts && ruff check src tests scripts
 mypy                                   # strict on src/
@@ -151,8 +151,13 @@ The base image is pinned by digest in the `Dockerfile`; runtime dependencies are
 `requirements.lock.txt` with `--require-hashes`. Regenerate the lock after changing `pyproject.toml`:
 
 ```bash
-uv pip compile pyproject.toml --generate-hashes --python-version 3.12 --python-platform linux -o requirements.lock.txt
+uv pip compile pyproject.toml --override overrides.txt --generate-hashes --python-version 3.12 --python-platform linux -o requirements.lock.txt
 ```
+
+`overrides.txt` lifts two upper-bound pins that `delta-sharing` 1.4.x places on `aiohttp` and
+`fsspec` (and the `yarl` floor the newer `aiohttp` needs). Those pins hold back releases that fix
+published CVEs; the client only uses them for HTTP range reads of pre-signed parquet URLs, which
+the integration tests cover. Drop the file once `delta-sharing` raises its caps.
 
 CI (`.github/workflows/delta-sharing-mirror-ci.yml` at the repo root) runs ruff, mypy, pytest,
 `terraform validate`, the image build, a CycloneDX SBOM (syft) stored as a build artifact, and

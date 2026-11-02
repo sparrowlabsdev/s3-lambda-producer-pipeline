@@ -40,7 +40,7 @@ def moto_endpoint() -> Iterator[str]:
         env={**os.environ, "MOTO_ALLOW_NONEXISTENT_REGION": "true"},
     )
     url = f"http://127.0.0.1:{port}"
-    for _ in range(100):
+    for _ in range(600):  # cold starts (fresh install, slow CI runner) can take a while
         try:
             requests.get(url, timeout=0.5)
             break

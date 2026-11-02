@@ -32,7 +32,7 @@ jobs:
       - name: Install
         run: |
           uv venv .venv
-          uv pip install -e ".[dev]"
+          uv pip install -e ".[dev]" --override overrides.txt
       - name: ruff
         run: |
           .venv/bin/ruff format --check src tests scripts
@@ -90,9 +90,12 @@ jobs:
         with:
           python-version: "3.12"
       - name: pip-audit against the locked runtime dependencies
+        # Install the lock exactly as the image does (hashes, no resolution) into one venv,
+        # and audit it from a separate tool venv so pip-audit's own dependencies are not in scope.
         run: |
-          uv venv .venv && uv pip install pip-audit==2.10.0
-          .venv/bin/pip-audit -r requirements.lock.txt --require-hashes --strict --desc
+          uv venv --seed audit-env && uv pip install --python audit-env/bin/python --require-hashes --no-deps -r requirements.lock.txt
+          uv venv tool-env && uv pip install --python tool-env/bin/python pip-audit==2.10.0
+          PIPAPI_PYTHON_LOCATION=$PWD/audit-env/bin/python tool-env/bin/pip-audit --strict --desc
 
   compose-integration:
     name: reference server + MinIO (opt-in)
@@ -104,7 +107,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
-      - run: uv venv .venv && uv pip install -e ".[dev]"
+      - run: uv venv .venv && uv pip install -e ".[dev]" --override overrides.txt
       - name: Start stack
         run: docker compose -f docker-compose.test.yml up -d --wait --wait-timeout 300
       - name: Seed provider tables
